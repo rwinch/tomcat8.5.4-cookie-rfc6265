@@ -1,4 +1,5 @@
-It appears that Tomcat 8.5.4 does  not conform to the Servlet 3.1 specification in regards to the Cookie RFC that should be used.
+It appears that Tomcat 8.5.4 does  not conform to the Servlet 3.1 specification in regards to the Cookie RFC that should be used. I posted
+this to the http://markmail.org/search/?q=list%3Aorg.apache.tomcat.user/#query:list%3Aorg.apache.tomcat.user%2F+page:1+mid:n5hvwzsrlkkdbfxd+state:results[Tomcat User mailing list for discussion].
 
 = Servlet 3.1 Specification
 
@@ -70,3 +71,9 @@ You can create a war to deploy using:
 ----
 $ ./mvnw package
 ----
+
+= Related Links
+
+* http://markmail.org/search/?q=list%3Aorg.apache.tomcat.user/#query:list%3Aorg.apache.tomcat.user%2F+page:1+mid:n5hvwzsrlkkdbfxd+state:results[Tomcat Mailing List Discussion]
+* https://github.com/spring-projects/spring-session/issues/605[Spring Session issue]
+* http://stackoverflow.com/questions/38687210/error-with-cookie-value-when-adding-a-new-spring-session[StackOverflow Question]

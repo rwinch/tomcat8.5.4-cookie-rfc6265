@@ -1,0 +1,72 @@
+It appears that Tomcat 8.5.4 does  not conform to the Servlet 3.1 specification in regards to the Cookie RFC that should be used.
+
+= Servlet 3.1 Specification
+
+Tomcat 8.5.4 states it http://tomcat.apache.org/whichversion.html[follows the Servlet 3.1 specification].
+
+The Servlet 3.1 Cookie class level https://docs.oracle.com/javaee/7/api/javax/servlet/http/Cookie.html[Javadoc states]:
+
+> This class supports both the Version 0 (by Netscape) and Version 1 (by RFC 2109) cookie specifications. By default,
+> cookies are created using Version 0 to ensure the best interoperability.
+
+The Servlet 3.1 https://docs.oracle.com/javaee/7/api/javax/servlet/http/Cookie.html#setVersion-int-[Cookie setVersion(int v) Javadoc] states:
+
+> Sets the version of the cookie protocol that this Cookie complies with.
+> Version 0 complies with the original Netscape cookie specification. Version 1 complies with RFC 2109.
+> Since RFC 2109 is still somewhat new, consider version 1 as experimental; do not use it yet on production sites.
+
+= Tomcat Behavior
+
+Given the Javadoc, we should expect that RFC 2109 would be used with the following code.
+
+[source,java]
+----
+Cookie cookie = new Cookie("name","value with spaces");
+cookie.setVersion(1);
+httpServletResponse.addCookie(cookie);
+----
+
+However, in Tomcat 8.5.4 I receive the following Stacktrace which demonstrates that RFC 6265 is being used. You can run
+the sample code by using the https://github.com/rwinch/tomcat8.5.4-cookie-rfc6265[sample project] I put together.
+
+----
+java.lang.IllegalArgumentException: An invalid character [32] was present in the Cookie value
+	org.apache.tomcat.util.http.Rfc6265CookieProcessor.validateCookieValue(Rfc6265CookieProcessor.java:160)
+	org.apache.tomcat.util.http.Rfc6265CookieProcessor.generateHeader(Rfc6265CookieProcessor.java:109)
+	org.apache.catalina.connector.Response.generateCookieString(Response.java:989)
+	org.apache.catalina.connector.Response.addCookie(Response.java:937)
+	org.apache.catalina.connector.ResponseFacade.addCookie(ResponseFacade.java:386)
+	sample.CookieServlet.doGet(CookieServlet.java:19)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:52)
+----
+
+= Tomcat Documentation
+
+The https://tomcat.apache.org/tomcat-8.5-doc/servletapi/javax/servlet/http/Cookie.html[Tomcat Cookie class level Javadoc] appears to contradict the Servlet 3.1 Javadoc.
+
+> This class supports both the RFC 2109 and the RFC 6265 specifications. By default, cookies are created using RFC 6265.
+
+The https://tomcat.apache.org/tomcat-8.5-doc/servletapi/javax/servlet/http/Cookie.html#setVersion(int)[Tomcat Cookie setVersion(int v) Javadoc] seems to agree with the Servlet 3.1 Javadoc:
+
+> Returns the version of the protocol this cookie complies with. Version 1 complies with RFC 2109, and version 0 complies
+> with the original cookie specification drafted by Netscape. Cookies provided by a browser use and identify the browser's
+> cookie version.
+
+However, the above stacktrace indicates the behavior does not align with the Servlet Javadoc nor does it align with the
+Tomcat Cookie setVersion method level Javadoc.
+
+= Help
+
+I realize that I can manually configure `LegacyCookieProcessor`, but this doesn't seem like any configuration should be necessary
+to conform to the Servlet 3.1 specification. Any help sorting this out would be greatly appreciated!
+
+= Packaging the Sample
+
+You can create a war to deploy using:
+
+[source,bash]
+----
+$ ./mvnw package
+----
